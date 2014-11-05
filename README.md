@@ -4,6 +4,7 @@ Click-Rate
 Readme for Click-Rate: 
 
 Three tries: 
+
 1. basiclogitsubmit - first try
 
 2. feature.eng.r - (4 - Nov, 2014) 
