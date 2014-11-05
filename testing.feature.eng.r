@@ -90,10 +90,13 @@ click.logit = glm(formula, data = train.cv, family = 'binomial')
 prediction = predict(click.logit, newdata = test.cv, type = 'response')
 actual = test.cv$click
 
+###################################
+# Est. prediction 
+# epsilon = error 
 
 llfun <- function(actual, prediction) {
     epsilon <- .000000000000001
-    yhat <- pmin(pmax(prediction, epsilon), 1-epsilon)
+    yhat <- pmin(pmax(prediction, epsilon), 1 - epsilon)
     logloss <- -mean(actual*log(yhat)
                      + (1-actual)*log(1 - yhat))
     return(logloss)
