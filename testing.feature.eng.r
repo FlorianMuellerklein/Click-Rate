@@ -3,6 +3,10 @@ library(dplyr)
 library(data.table)
 library(biglm)
 
+###################################
+#Olives edit! 
+#This is all a comment! WOW! 
+
 setwd("/Volumes/Cruzer/R/Click Rate")
 data = fread('saturday.train.csv', verbose = T)
 data = select(data, hour, C21, C22, C24, click, C19, C18, app_category, site_category)
