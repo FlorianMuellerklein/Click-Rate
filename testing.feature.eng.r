@@ -118,5 +118,5 @@ print('Standard logistic regression')
 llfun(actual, prediction.nm)
 
 print('Average of both')
-mean.p = mean(prediction.m, prediction.nm)
+mean.p = ave(prediction.m, prediction.nm)
 llfun(actual, mean.p)
