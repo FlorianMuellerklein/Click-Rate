@@ -69,7 +69,8 @@ mean0 <- mean(var22[,1])	# mean of 0 clicks for C22
 mean1 <- mean(var22[,2])	# mean of 1 clicks for C22
 
 freq0 <- sum(var22[,1])		# note: freq0 / len0 = mean0
-freq0 <- sum(var22[,2])
+freq1 <- sum(var22[,2])
+# freq0 + freq1 = instances
 
 len0 <- length(var22[,1])	# number of entries 
 len1 <- length(var22[,2])
@@ -77,23 +78,39 @@ len1 <- length(var22[,2])
 sd0 <- sd(var22[,1])		# sd of 0 clicks for C22, but this is >200000...
 sd1 <- sd(var22[,2])
 
-# standard error of mean looks at variance across datasets (each category = dataset)
-# not sure if standard error is best way...but it makes more sense to me than sd
-
 serror0 <- sd0 / sqrt(len0)	# st. error = sd / (sample size)^1/2 = >30000...
 serror1 <- sd1 / sqrt(len1) 
 
 # this is calculating var (either sd or serror) per col
 # we need an all-encompassing beta value
 
+##### calculate var for both cols
+len00 <- len0 * 2 			# double length since both cols
+sd00 <- sd(var22[,1] + var22[,2])
+se00 <- sd00 / sqrt(len00)
+
+########################################
+# I THINK FROM HERE DOWN IS THE WINNER!
+
+##### calculate NOT from table()
+#directly from col
+mean22 <- mean(data$C22)
+len22 <- length(data$C22)
+sd22 <- sd(data$C22)		# ~307
+se22 <- sd22 / sqrt(len22)	# ~0.14
+
 # apply to C22 
 alpha <- 0.14
-#beta = serror0
+#beta = sd22
 beta <- 100		# try beta at 100
-pseudoCR <- (C22.ctr + (alpha * beta)) / (C22.ctr + beta)
+click <- freq0	# freq0 or freq1 
+instances <- freq0 + freq1
+pseudoCR <- (click + (alpha * beta)) / (instances + beta)
 
 #least sum squares test with different beta values can show us 
 #which is best - whichever beta value gives drop in error = best one 
+
+########################################
 
 ###########################
 #Create hour of day feature
