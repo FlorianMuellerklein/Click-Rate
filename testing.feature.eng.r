@@ -84,7 +84,6 @@ test.nm = data[-indices, -1]
 trainy = data[indices, 1]
 
 train.m = data.matrix[indices, ]
-train.m = filter(train.m, -click == 1)
 train.m = data.frame(train.m)
 train.m = sparse.model.matrix(~ . , train.m)
 test.m = data.matrix[-indices, ]
@@ -94,8 +93,9 @@ test.m = sparse.model.matrix(~ . , test.m)
 rm(data, data.matrix)
 
 #formula = click ~ C21 + actualhour + C22 + C24 + C19 + C18 + hour.ctr + C21.ctr + C22.ctr + C24.ctr
-cv = cv.glmnet(train.m, trainy, nfolds = 10)
+cv = cv.glmnet(train.m, as.vector(trainy), nfolds = 10)
 glmnet.logit = glmnet(x = train.m, y = as.matrix(trainy), family = 'binomial')
+
 click.logit = glm(click ~ ., data = train.nm, family = 'binomial')
 
 prediction.nm = predict(click.logit, newdata = test.nm, type = 'response')
