@@ -17,4 +17,4 @@ Steps:
 2. for low instance category, calculate pseudo-click rate
 3. pseudoCR -> click + alpha * beta / instances + beta 
 4. alpha = mean click rate = 0.14 
-5. beta = SD for category (?) 
+5. beta = SD for category -> see smoothCR.r
