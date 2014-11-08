@@ -3,7 +3,7 @@ library(dplyr)
 library(Matrix)
 library(glmnet)
 
-setwd("/Volumes/Cruzer/R/Click Rate")
+setwd("~/Documents/Kaggle/Click-Rate")
 data = read.csv('saturday.train.csv')
 data = select(data, click, hour, C21, C22, C24, C19, C18, app_category, site_category)
 
@@ -21,7 +21,7 @@ data$site_category = factor(data$site_category, ordered = F)
 #Feature Engineering
 
 #######
-#Calculate Click Rates
+#Calculate Click Rates hour, C21, C22, C24, C19, C18, app_category, site_category
 #create variable of just the hours in a day
 data$actualhour = as.character(substring(data$hour, 7,8))
 
@@ -53,7 +53,35 @@ for (i in unique(data$C24)) {
     data$C24.ctr[data$C24 == i] = C24.ctr[C24.ctr$C24 == i, 'ratio']
 }
 
-rm(C21.ctr, C22.ctr, C24.ctr, hour.ctr)
+#calcute click rate per C19 and add those rates to a new column in data
+C19.ctr = data %>% group_by(C19) %>% summarise(ratio = sum(click ==1) / length(click))
+C19.ctr = data.frame(C19.ctr)
+for (i in unique(data$C19)) {
+    data$C19.ctr[data$C19 == i] = C19.ctr[C19.ctr$C19 == i, 'ratio']
+}
+
+#calcute click rate per C18 and add those rates to a new column in data
+C18.ctr = data %>% group_by(C18) %>% summarise(ratio = sum(click ==1) / length(click))
+C18.ctr = data.frame(C18.ctr)
+for (i in unique(data$C18)) {
+    data$C18.ctr[data$C18 == i] = C18.ctr[C18.ctr$C18 == i, 'ratio']
+}
+
+#calcute click rate per app_category and add those rates to a new column in data
+app.ctr = data %>% group_by(app_category) %>% summarise(ratio = sum(click ==1) / length(click))
+app.ctr = data.frame(app.ctr)
+for (i in unique(data$app_category)) {
+    data$app.ctr[data$app_category == i] = app.ctr[app.ctr$app_category == i, 'ratio']
+}
+
+#calcute click rate per site_category and add those rates to a new column in data
+site.ctr = data %>% group_by(site_category) %>% summarise(ratio = sum(click ==1) / length(click))
+site.ctr = data.frame(site.ctr)
+for (i in unique(data$site_category)) {
+    data$site.ctr[data$site_category == i] = site.ctr[site.ctr$site_category == i, 'ratio']
+}
+
+rm(C21.ctr, C22.ctr, C24.ctr, C19.ctr, C18.ctr, hour.ctr, site.ctr, app.ctr)
 
 ###########################
 #click rate (above) for categories with high instances
@@ -113,7 +141,7 @@ pseudoCR <- (click + (alpha * beta)) / (instances + beta)
 ########################################
 
 ###########################
-#Create hour of day feature
+#hours to numeric
 data$actualhour = as.numeric(data$actualhour)
 
 ######
@@ -128,8 +156,8 @@ C18.matrix = model.matrix(~ 0 + C18, data)
 
 data.matrix = cbind(app.matrix, site.matrix, C18.matrix, C19.matrix, C21.matrix, C22.matrix, C24.matrix)
 rm(app.matrix, C18.matrix, C19.matrix, C21.matrix, C22.matrix, C24.matrix, site.matrix)
-data = select(data, -hour, click, hour.ctr, C21.ctr, C22.ctr, C24.ctr, C21, C22, C24, C18, C19)
-data.matrix = cbind(data[,2:5], data.matrix)
+data = select(data, -hour, click, hour.ctr, C21.ctr, C22.ctr, C24.ctr, C18.ctr, C19.ctr, app.ctr, site.ctr, C21, C22, C24, C18, C19)
+data.matrix = cbind(data[,2:9], data.matrix)
 ###################################
 #Logistic regression with logloss calculation
 
