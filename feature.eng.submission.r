@@ -8,16 +8,20 @@ data = read.csv('saturday.train.csv')
 data = select(data, click, hour, C21, C22, C24, C19, C18, app_category, site_category)
 
 test = read.csv('test_rev2.csv')
-test = select(test, hour, C21, C22, C24, C19, C18, app_category, site_category)
+test = select(test, id, hour, C21, C22, C24, C19, C18, app_category, site_category)
+test.id = select(test, id)
+test = select(test, -id)
 
 ###################################
 #prepare data
 
-#Put 0 in for values that don't exist in either set
+#Put 1 in for values that don't exist in either set
 test$C22 = ifelse(test$C22 %in% unique(data$C22), test$C22, 1)
 test$C24 = ifelse(test$C24 %in% unique(data$C24), test$C24, 1)
+test$app_category = ifelse(test$app_category %in% unique(data$app_category), test$app_category, 1)
+test$site_category = ifelse(test$site_category %in% unique(data$site_category), test$site_category, 1)
 test.C19 = ifelse(test$C19 %in% unique(data$C19), test$C19, 1)
-test.C18 = ifelse(test$C18 %in% unique(data$C18), test$C18, 1)t
+test.C18 = ifelse(test$C18 %in% unique(data$C18), test$C18, 1)
 test$C19 = test.C19
 test$C19 = ifelse(test$C19 == 9, 8, test$C19)
 test$C18 = test.C18
@@ -25,6 +29,8 @@ rm(test.C18, test.C19)
 
 data$C22 = ifelse(data$C22 %in% unique(test$C22), data$C22, 1)
 data$C24 = ifelse(data$C24 %in% unique(test$C24), data$C24, 1)
+data$app_category = ifelse(data$app_category %in% unique(test$app_category), data$app_category, 1)
+data$site_category = ifelse(data$site_category %in% unique(test$site_category), data$site_category, 1)
 data.C19 = ifelse(data$C19 %in% unique(test$C19), data$C19, 1)
 data.C18 = ifelse(data$C18 %in% unique(test$C18), data$C18, 1)
 data$C19 = data.C19
@@ -131,7 +137,6 @@ rm(C21.ctr, C22.ctr, C24.ctr, C19.ctr, C18.ctr, hour.ctr, site.ctr, app.ctr)
 
 #put click in it's own variable for training later
 click = data[,1]
-click = factor(click)
 data = select(data, -click)
 
 #combine data and test before sparse so that each test has the exact same columns later
@@ -173,13 +178,17 @@ data.matrix = data.matrix[1:numdata, ]
 ###################################
 #Train logistic regression
 
-cv = cv.glmnet(as.matrix(data.matrix), as.matrix(click), nfolds = 10)
+#cv = cv.glmnet(as.matrix(data.matrix), as.matrix(click), nfolds = 10)
 glmnet.logit = glmnet(x = as.matrix(data.matrix), y = as.matrix(click), family = 'binomial')
 
 ################################
 #make prediction
 
-prediction = predict(glmnet.logit, newx = as.matrix(test.matrix), type = 'response', s = cv$lambda.min)
+#prediction = predict(cv, newx = as.matrix(test.matrix), type = 'response', s = cv$lambda.min)
+prediction = predict(glmnet.logit, newx = as.matrix(test.matrix), type = 'response', s = 0.000005)
+
+#getting an single NA somehow so replace it with avg click rate
+prediction = ifelse(is.na(prediction), .14, prediction)
 
 sample = read.csv('sampleSubmission.csv', colClasses = c('id' = 'character'))
 submit = cbind(sample[,1], prediction)
@@ -187,3 +196,10 @@ submit = data.frame(submit)
 colnames(submit) = c('id', 'click')
 write.csv(submit, file = 'kaggleclicklogit.csv', row.names = F, quote = F)
 
+
+#write csv for vowpal wabbit
+test.matrix = cbind(test.id, test.matrix)
+data.matrix = cbind(click, data.matrix)
+
+write.csv(test.matrix, file = 'vw_test.csv', row.names = F, quote = F)
+write.csv(data.matrix, file = 'vw_train.csv', row.names = F, quote = F)
