@@ -19,35 +19,41 @@ data$site_category = factor(data$site_category, ordered = F)
 
 ####################################
 #Feature Engineering
+####################################
 
-#######
-#Calculate Click Rates hour, C21, C22, C24, C19, C18, app_category, site_category
 #create variable of just the hours in a day
 data$actualhour = as.character(substring(data$hour, 7,8))
 
+#Calculate click rates hour, C21, C22, C24, C19, C18, app_category, site_category
+#use the smoothing function alpha * beta / beta with a unique beta for each column 
+
+alpha = 0.14
+beta = 250
+
 #calcute click rate per hour and add those rates to a new column in data
-hour.ctr = data %>% group_by(actualhour) %>% summarise(ratio = sum(click == 1) / length(click))
+
+hour.ctr = data %>% group_by(actualhour) %>% summarise(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta))
 hour.ctr = data.frame(hour.ctr)
 for (i in unique(data$actualhour)) {
     data$hour.ctr[data$actualhour == i] = hour.ctr[hour.ctr$actualhour == i, 'ratio']
 }
 
 #calcute click rate per C21 and add those rates to a new column in data
-C21.ctr = data %>% group_by(C21) %>% summarise(ratio = sum(click ==1) / length(click))
+C21.ctr = data %>% group_by(C21) %>% summarise(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta))
 C21.ctr = data.frame(C21.ctr)
 for (i in unique(data$C21)) {
     data$C21.ctr[data$C21 == i] = C21.ctr[C21.ctr$C21 == i, 'ratio']
 }
 
 #calcute click rate per C22 and add those rates to a new column in data
-C22.ctr = data %>% group_by(C22) %>% summarise(ratio = sum(click ==1) / length(click))
+C22.ctr = data %>% group_by(C22) %>% summarise(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta))
 C22.ctr = data.frame(C22.ctr)
 for (i in unique(data$C22)) {
     data$C22.ctr[data$C22 == i] = C22.ctr[C22.ctr$C22 == i, 'ratio']
 }
 
 #calcute click rate per C24 and add those rates to a new column in data
-C24.ctr = data %>% group_by(C24) %>% summarise(ratio = sum(click ==1) / length(click))
+C24.ctr = data %>% group_by(C24) %>% summarise(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta))
 C24.ctr = data.frame(C24.ctr)
 for (i in unique(data$C24)) {
     data$C24.ctr[data$C24 == i] = C24.ctr[C24.ctr$C24 == i, 'ratio']
@@ -61,21 +67,21 @@ for (i in unique(data$C19)) {
 }
 
 #calcute click rate per C18 and add those rates to a new column in data
-C18.ctr = data %>% group_by(C18) %>% summarise(ratio = sum(click ==1) / length(click))
+C18.ctr = data %>% group_by(C18) %>% summarise(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta))
 C18.ctr = data.frame(C18.ctr)
 for (i in unique(data$C18)) {
     data$C18.ctr[data$C18 == i] = C18.ctr[C18.ctr$C18 == i, 'ratio']
 }
 
 #calcute click rate per app_category and add those rates to a new column in data
-app.ctr = data %>% group_by(app_category) %>% summarise(ratio = sum(click ==1) / length(click))
+app.ctr = data %>% group_by(app_category) %>% summarise(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta))
 app.ctr = data.frame(app.ctr)
 for (i in unique(data$app_category)) {
     data$app.ctr[data$app_category == i] = app.ctr[app.ctr$app_category == i, 'ratio']
 }
 
 #calcute click rate per site_category and add those rates to a new column in data
-site.ctr = data %>% group_by(site_category) %>% summarise(ratio = sum(click ==1) / length(click))
+site.ctr = data %>% group_by(site_category) %>% summarise(ratio = sum(ratio = (sum(click == 1) + (alpha * beta)) / (length(click) + beta)))
 site.ctr = data.frame(site.ctr)
 for (i in unique(data$site_category)) {
     data$site.ctr[data$site_category == i] = site.ctr[site.ctr$site_category == i, 'ratio']
@@ -83,64 +89,6 @@ for (i in unique(data$site_category)) {
 
 rm(C21.ctr, C22.ctr, C24.ctr, C19.ctr, C18.ctr, hour.ctr, site.ctr, app.ctr)
 
-###########################
-#click rate (above) for categories with high instances
-#pseudoClick rate for categories with low instances
-
-#pseudoCR = click + alpha * beta / instances + beta
-# alpha = mean click rate = 0.14 
-# beta = sd forcategory 
-
-# NOTE: following is rough outline of finding beta!
-var22 <- table(data$C22, data$click)
-mean0 <- mean(var22[,1])	# mean of 0 clicks for C22
-mean1 <- mean(var22[,2])	# mean of 1 clicks for C22
-
-freq0 <- sum(var22[,1])		# note: freq0 / len0 = mean0
-freq1 <- sum(var22[,2])
-# freq0 + freq1 = instances
-
-len0 <- length(var22[,1])	# number of entries 
-len1 <- length(var22[,2])
-
-sd0 <- sd(var22[,1])		# sd of 0 clicks for C22, but this is >200000...
-sd1 <- sd(var22[,2])
-
-serror0 <- sd0 / sqrt(len0)	# st. error = sd / (sample size)^1/2 = >30000...
-serror1 <- sd1 / sqrt(len1) 
-
-# this is calculating var (either sd or serror) per col
-# we need an all-encompassing beta value
-
-##### calculate var for both cols
-len00 <- len0 * 2 			# double length since both cols
-sd00 <- sd(var22[,1] + var22[,2])
-se00 <- sd00 / sqrt(len00)
-
-########################################
-# I THINK FROM HERE DOWN IS THE WINNER!
-
-##### calculate NOT from table()
-#directly from col
-mean22 <- mean(data$C22)
-len22 <- length(data$C22)
-sd22 <- sd(data$C22)		# ~307
-se22 <- sd22 / sqrt(len22)	# ~0.14
-
-# apply to C22 
-alpha <- 0.14
-#beta = sd22
-beta <- 100		# try beta at 100
-click <- freq0	# freq0 or freq1 
-instances <- freq0 + freq1
-pseudoCR <- (click + (alpha * beta)) / (instances + beta)
-
-#least sum squares test with different beta values can show us 
-#which is best - whichever beta value gives drop in error = best one 
-
-########################################
-
-###########################
 #hours to numeric
 data$actualhour = as.numeric(data$actualhour)
 
