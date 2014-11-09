@@ -131,6 +131,7 @@ rm(C21.ctr, C22.ctr, C24.ctr, C19.ctr, C18.ctr, hour.ctr, site.ctr, app.ctr)
 
 #put click in it's own variable for training later
 click = data[,1]
+click = factor(click)
 data = select(data, -click)
 
 #combine data and test before sparse so that each test has the exact same columns later
@@ -172,16 +173,17 @@ data.matrix = data.matrix[1:numdata, ]
 ###################################
 #Train logistic regression
 
-cv = cv.glmnet(as.matrix(data.matrix), as.vector(click), nfolds = 10)
+cv = cv.glmnet(as.matrix(data.matrix), as.matrix(click), nfolds = 10)
 glmnet.logit = glmnet(x = as.matrix(data.matrix), y = as.matrix(click), family = 'binomial')
 
 ################################
 #make prediction
 
-prediction = predict(glmnet.logit, newx = test.matrix, type = 'response', s = cv$lambda.min)
+prediction = predict(glmnet.logit, newx = as.matrix(test.matrix), type = 'response', s = cv$lambda.min)
 
 sample = read.csv('sampleSubmission.csv', colClasses = c('id' = 'character'))
 submit = cbind(sample[,1], prediction)
 submit = data.frame(submit)
 colnames(submit) = c('id', 'click')
 write.csv(submit, file = 'kaggleclicklogit.csv', row.names = F, quote = F)
+
