@@ -14,8 +14,8 @@ test = select(test, -id)
 
 ###################################
 #calculate weights for click or no-click
-weight.click = (sum(data$click == 1) - nrow(data)) / nrow(data)
-weight.noclick = (sum(data$click == 0) - nrow(data)) / nrow(data)
+weight.click = (sum(data$click == 1) - nrow(data)) ^ 2 / nrow(data)
+weight.noclick = (sum(data$click == 0) - nrow(data)) ^ 2 / nrow(data)
 weights = ifelse(data$click == 1, weight.click, weight.noclick)
 
 #prepare data
