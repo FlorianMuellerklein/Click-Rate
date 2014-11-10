@@ -17,7 +17,7 @@ predictors = names(trainDF)[!names(trainDF) %in% c(outcomeName, '')]
 test.predictors = names(testDF)[!names(testDF) %in% c(testlabel, '')]
 
 #Classes have to be either -1 or 1 for vowpal wabbit
-trainDF[,outcomeName] = ifelse(trainDF[,outcomeName] > 0, paste(1, 2, 'click', sep = ' '), paste(-1, 1, 'no-click', sep = ' '))
+trainDF[,outcomeName] = ifelse(trainDF[,outcomeName] > 0, paste(1, 3476120, 'click', sep = ' '), paste(-1, 92120, 'no-click', sep = ' '))
 #add the '|' thing as per vowpal wabbit format
 trainDF[,outcomeName] = paste(trainDF[,outcomeName], "|")
 testDF[,testlabel] = paste(testDF[,testlabel], "|")
