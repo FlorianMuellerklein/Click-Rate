@@ -13,6 +13,11 @@ test.id = select(test, id)
 test = select(test, -id)
 
 ###################################
+#calculate weights for click or no-click
+weight.click = (sum(data$click == 1) - nrow(data)) / nrow(data)
+weight.noclick = (sum(data$click == 0) - nrow(data)) / nrow(data)
+weights = ifelse(data$click == 1, weight.click, weight.noclick)
+
 #prepare data
 
 #Put 1 in for values that don't exist in either set
@@ -178,8 +183,8 @@ data.matrix = data.matrix[1:numdata, ]
 ###################################
 #Train logistic regression
 
-#cv = cv.glmnet(as.matrix(data.matrix), as.matrix(click), nfolds = 10)
-glmnet.logit = glmnet(x = as.matrix(data.matrix), y = as.matrix(click), family = 'binomial')
+#cv = cv.glmnet(as.matrix(data.matrix), as.matrix(click), weights = weights, nfolds = 10)
+glmnet.logit = glmnet(x = as.matrix(data.matrix), y = as.matrix(click), weights = weights, family = 'binomial')
 
 ################################
 #make prediction
