@@ -9,9 +9,12 @@ testlabel = 'id'
 trainDF = train
 testDF = test
 
+testDF = select(testDF, -app.ctr, -site.ctr)
+trainDF = select(trainDF, -app.ctr, -site.ctr)
+
 #take all column names except for 'click'
-predictors = names(train)[!names(train) %in% c(outcomeName, '')]
-test.predictors = names(test)[!names(test) %in% c(testlabel, '')]
+predictors = names(trainDF)[!names(trainDF) %in% c(outcomeName, '')]
+test.predictors = names(testDF)[!names(testDF) %in% c(testlabel, '')]
 
 #Classes have to be either -1 or 1 for vowpal wabbit
 trainDF[,outcomeName] = ifelse(trainDF[,outcomeName] > 0, paste(1, 2, 'click', sep = ' '), paste(-1, 1, 'no-click', sep = ' '))
@@ -19,8 +22,6 @@ trainDF[,outcomeName] = ifelse(trainDF[,outcomeName] > 0, paste(1, 2, 'click', s
 trainDF[,outcomeName] = paste(trainDF[,outcomeName], "|")
 testDF[,testlabel] = paste(testDF[,testlabel], "|")
 
-testDF = select(testDF, -app.ctr, -site.ctr)
-trainDF = select(trainDF, -app.ctr, -site.ctr)
 
 #Pairing column names with data... adding 1 blank character before each variable
 for (i in predictors) {
@@ -46,6 +47,12 @@ write.table(testDF, file = 'vw_test.txt', sep = "", quote = F, row.names = F,  c
 
 ##################################
 #Run Vowpal Wabbit!
+#type the two following commands in terminal
+
+#vw -d vw_train.txt -c --passes 10 -f ctr.model.vw --loss_function logistic
+
+#vw vw_test.txt -t -i ctr.model.vw -p ctr.preds.txt
+
 ##################################
 
 ###################################
