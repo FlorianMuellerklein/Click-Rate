@@ -3,7 +3,7 @@ library(dplyr)
 library(Matrix)
 library(glmnet)
 
-setwd("~/Documents/Kaggle/Click-Rate")
+setwd("/Volumes/CRUZER/R/Click Rate")
 data = read.csv('saturday.train.csv')
 data = select(data, click, hour, C21, C22, C24, C19, C18, app_category, site_category)
 
@@ -90,7 +90,7 @@ for (i in unique(data$site_category)) {
 rm(C21.ctr, C22.ctr, C24.ctr, C19.ctr, C18.ctr, hour.ctr, site.ctr, app.ctr)
 
 #hours to numeric
-data$actualhour = as.numeric(data$actualhour)
+data$actualhour = as.factor(data$actualhour)
 
 ######
 #Create sparse matrix for crazy encrypted variables
@@ -104,8 +104,8 @@ C18.matrix = model.matrix(~ 0 + C18, data)
 
 data.matrix = cbind(app.matrix, site.matrix, C18.matrix, C19.matrix, C21.matrix, C22.matrix, C24.matrix)
 rm(app.matrix, C18.matrix, C19.matrix, C21.matrix, C22.matrix, C24.matrix, site.matrix)
-data = select(data, -hour, click, hour.ctr, C21.ctr, C22.ctr, C24.ctr, C18.ctr, C19.ctr, app.ctr, site.ctr, C21, C22, C24, C18, C19)
-data.matrix = cbind(data[,2:9], data.matrix)
+data = select(data, -hour, click, actualhour, hour.ctr, C21.ctr, C22.ctr, C24.ctr, C18.ctr, C19.ctr, app.ctr, site.ctr, C21, C22, C24, C18, C19)
+data.matrix = cbind(data[,2:10], data.matrix)
 ###################################
 #Logistic regression with logloss calculation
 
@@ -126,8 +126,9 @@ test.m = sparse.model.matrix(~ . , test.m)
 rm(data, data.matrix)
 
 #formula = click ~ C21 + actualhour + C22 + C24 + C19 + C18 + hour.ctr + C21.ctr + C22.ctr + C24.ctr
-cv = cv.glmnet(train.m, as.vector(trainy), nfolds = 10)
-glmnet.logit = glmnet(x = train.m, y = as.matrix(trainy), family = 'binomial')
+
+glmnet.logit = glmnet(x = train.m, y = as.matrix(trainy), family = 'binomial', alpha = 1)
+cv = cv.glmnet(train.m, as.vector(trainy), alpha = 1)
 
 click.logit = glm(click ~ ., data = train.nm, family = 'binomial')
 
