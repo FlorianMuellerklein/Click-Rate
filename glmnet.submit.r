@@ -7,13 +7,13 @@ library(data.table)
 setwd("~/Documents/Kaggle/Click-Rate")
 #setwd("/Volumes/PSSD/Click Rate")
 train = fread('train')
-#train = select(train, id, click, hour, C1, C15, C16, C18)
+train = select(train, banner_pos, site_category, app_domain, app_category, device_type, C15, C16, C17, C18, C19, C20, C21, hour, click, C1, id)
 indices = sample(1:nrow(train), nrow(train) * .2)
 train = train[indices, ]
 rm(indices)
 
 test = fread('test')
-#test = select(test, id, hour, C1, C15, C16, C18)
+test = select(test, banner_pos, site_category, app_domain, app_category, device_type, C15, C16, C17, C18, C19, C20, C21, hour, C1, id)
 
 ####################################
 #put '1' in for variables that don't exist in both sets
@@ -51,7 +51,7 @@ train$site_category = as.factor(train$site_category)
 train$app_domain = as.factor(train$app_domain)
 train$app_category = as.factor(train$app_category)
 train$device_type = as.factor(train$device_type)
-train$device_conn_type = as.factor(train$device_conn_type)
+#train$device_conn_type = as.factor(train$device_conn_type)
 train$C15 = as.factor(train$C15)
 train$C16 = as.factor(train$C16)
 train$C17 = as.factor(train$C17)
@@ -74,7 +74,7 @@ test$site_category = as.factor(test$site_category)
 test$app_domain = as.factor(test$app_domain)
 test$app_category = as.factor(test$app_category)
 test$device_type = as.factor(test$device_type)
-test$device_conn_type = as.factor(test$device_conn_type)
+#test$device_conn_type = as.factor(test$device_conn_type)
 test$C15 = as.factor(test$C15)
 test$C16 = as.factor(test$C16)
 test$C17 = as.factor(test$C17)
@@ -124,7 +124,7 @@ for (i in unique(test$day)) {
 click = select(train, click)
 train = select(train, -click)
 
-train = sparse.model.matrix(~ . , train, contrasts.arg = c('C1', 'C15', 'C16', 'C18', 'actualhour', 'day'))
+train = sparse.model.matrix(~ . , train, contrasts.arg = c("C1", "banner_pos", "site_category", "app_domain", "app_category", "device_type", "C15", "C16", "C17", "C18", "C19", "C20", "C21", "actualhour", "day"))
 
 ###################################
 #regularized logistic regression with logloss calculation
@@ -140,7 +140,7 @@ cv = cv.glmnet(train, as.matrix(click), alpha = 0, nfolds = 5)
 #Prepare data for testing
 
 test = select(test, -hour, -id)
-test = sparse.model.matrix(~ . , test, contrasts.arg = c('C1', 'C15', 'C16', 'C18', 'actualhour', 'day'))
+test = sparse.model.matrix(~ . , test, contrasts.arg = c("C1", "banner_pos", "site_id", "site_domain", "site_category", "app_id", "app_domain", "app_category", "device_id", "device_ip", "device_model", "device_type", "device_conn_type", "C14", "C15", "C16", "C17", "C18", "C19", "C20", "C21", "actualhour", "day"))
 
 #################################
 #Make prediction
