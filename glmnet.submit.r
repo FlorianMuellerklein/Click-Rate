@@ -4,40 +4,39 @@ library(Matrix)
 library(glmnet)
 library(data.table)
 
-#setwd("~/Documents/Kaggle/Click-Rate")
-setwd("/Volumes/PSSD/Click Rate")
-#data = read.csv('saturday.train.csv')
+setwd("~/Documents/Kaggle/Click-Rate")
+#setwd("/Volumes/PSSD/Click Rate")
 train = fread('train')
-train = select(train, id, click, hour, C1, C15, C16, C18, banner_pos, site_category)
+#train = select(train, id, click, hour, C1, C15, C16, C18)
 indices = sample(1:nrow(train), nrow(train) * .2)
 train = train[indices, ]
 rm(indices)
 
 test = fread('test')
-test = select(test, id, hour, C1, C15, C16, C18, banner_pos, site_category)
+#test = select(test, id, hour, C1, C15, C16, C18)
 
 ####################################
 #put '1' in for variables that don't exist in both sets
 
-#test$banner_pos = ifelse(test$banner_pos %in% unique(train$banner_pos), test$banner_pos, 1)
-#test$site_category = ifelse(test$site_category %in% unique(train$site_category), test$site_category, 1)
-#test$app_domain = ifelse(test$app_domain %in% unique(train$app_domain), test$app_domain, 1)
-#test$app_category = ifelse(test$app_category %in% unique(train$app_category), test$app_category, 1)
-#test$device_type = ifelse(test$device_type %in% unique(train$device_type), test$device_type, 1)
-#test$C17 = ifelse(test$C17 %in% unique(train$C17), test$C17, 1)
-#test$C19 = ifelse(test$C19 %in% unique(train$C19), test$C19, 1)
-#test$C20 = ifelse(test$C20 %in% unique(train$C20), test$C20, 1)
-#test$C21 = ifelse(test$C21 %in% unique(train$C21), test$C21, 1)
+test$banner_pos = ifelse(test$banner_pos %in% unique(train$banner_pos), test$banner_pos, 1)
+test$site_category = ifelse(test$site_category %in% unique(train$site_category), test$site_category, 1)
+test$app_domain = ifelse(test$app_domain %in% unique(train$app_domain), test$app_domain, 1)
+test$app_category = ifelse(test$app_category %in% unique(train$app_category), test$app_category, 1)
+test$device_type = ifelse(test$device_type %in% unique(train$device_type), test$device_type, 1)
+test$C17 = ifelse(test$C17 %in% unique(train$C17), test$C17, 1)
+test$C19 = ifelse(test$C19 %in% unique(train$C19), test$C19, 1)
+test$C20 = ifelse(test$C20 %in% unique(train$C20), test$C20, 1)
+test$C21 = ifelse(test$C21 %in% unique(train$C21), test$C21, 1)
 
-#train$banner_pos = ifelse(train$banner_pos %in% unique(test$banner_pos), train$banner_pos, 1)
-#train$site_category = ifelse(train$site_category %in% unique(test$site_category), train$site_category, 1)
-#train$app_domain = ifelse(train$app_domain %in% unique(test$app_domain), train$app_domain, 1)
-#train$app_category = ifelse(train$app_category %in% unique(test$app_category), train$app_category, 1)
-#train$device_type = ifelse(train$device_type %in% unique(test$device_type), train$device_type, 1)
-#train$C17 = ifelse(train$C17 %in% unique(test$C17), train$C17, 1)
-#train$C19 = ifelse(train$C19 %in% unique(test$C19), train$C19, 1)
-#train$C20 = ifelse(train$C20 %in% unique(test$C20), train$C20, 1)
-#train$C21 = ifelse(train$C21 %in% unique(test$C21), train$C21, 1)
+train$banner_pos = ifelse(train$banner_pos %in% unique(test$banner_pos), train$banner_pos, 1)
+train$site_category = ifelse(train$site_category %in% unique(test$site_category), train$site_category, 1)
+train$app_domain = ifelse(train$app_domain %in% unique(test$app_domain), train$app_domain, 1)
+train$app_category = ifelse(train$app_category %in% unique(test$app_category), train$app_category, 1)
+train$device_type = ifelse(train$device_type %in% unique(test$device_type), train$device_type, 1)
+train$C17 = ifelse(train$C17 %in% unique(test$C17), train$C17, 1)
+train$C19 = ifelse(train$C19 %in% unique(test$C19), train$C19, 1)
+train$C20 = ifelse(train$C20 %in% unique(test$C20), train$C20, 1)
+train$C21 = ifelse(train$C21 %in% unique(test$C21), train$C21, 1)
 
 ####################################
 #Prepare data
@@ -84,7 +83,12 @@ test$C19 = as.factor(test$C19)
 test$C20 = as.factor(test$C20)
 test$C21 = as.factor(test$C21)
 test$actualhour = as.factor(test$actualhour)
-test$day[1] = 'Saturday'
+test$day[1] = 'Monday'
+test$day[2] = 'Tuesday'
+test$day[3] = 'Wednesday'
+test$day[4] = 'Thursday'
+test$day[5] = 'Saturday'
+test$day[6] = 'Sunday'
 test$day = as.factor(test$day)
 
 #add hour and day ctr to training set
@@ -120,7 +124,7 @@ for (i in unique(test$day)) {
 click = select(train, click)
 train = select(train, -click)
 
-train = sparse.model.matrix(~ . , train, contrasts.arg = c('C1', "banner_pos", "site_category", "app_domain", "app_category", "device_type", "device_conn_type", "C15", "C16", "C17", "C18", "C19", "C20", "C21", "actualhour", "day"))
+train = sparse.model.matrix(~ . , train, contrasts.arg = c('C1', 'C15', 'C16', 'C18', 'actualhour', 'day'))
 
 ###################################
 #regularized logistic regression with logloss calculation
@@ -130,22 +134,22 @@ glmnet.logit = glmnet(x = train, y = as.matrix(click), family = 'binomial', alph
 cv = cv.glmnet(train, as.matrix(click), alpha = 0, nfolds = 5)
 
 #clean up
-rm(train)
+#rm(train)
 
 #####################################################################
 #Prepare data for testing
 
 test = select(test, -hour, -id)
-test = sparse.model.matrix(~ . , test, contrasts.arg = c('C1', "banner_pos", "site_category", "app_domain", "app_category", "device_type", "device_conn_type", "C15", "C16", "C17", "C18", "C19", "C20", "C21", "actualhour", "day"))
+test = sparse.model.matrix(~ . , test, contrasts.arg = c('C1', 'C15', 'C16', 'C18', 'actualhour', 'day'))
 
 #################################
 #Make prediction
 
 prediction = predict(glmnet.logit, newx = test, type = 'response', s = cv$lambda.min)
 
-rm(test)
+#rm(test)
 
-sample = read.csv('sampleSubmission.csv', colClasses = c('id' = 'character'))
+sample = read.csv('sampleSubmission', colClasses = c('id' = 'character'))
 submit = cbind(sample[,1], prediction)
 submit = data.frame(submit)
 colnames(submit) = c('id', 'click')
