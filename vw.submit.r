@@ -6,6 +6,7 @@ library(Matrix)
 setwd("~/Documents/Kaggle/Click-Rate")
 train = fread('train')
 train = select(train, -id)
+train = select(train, -id, -device_id, -device_ip
 
 #calculate click ratio of entire dataset
 click.ratio = sum(train[, click]) / nrow(train)
@@ -33,9 +34,36 @@ for (i in unique(train$day)) {
     train$day.ctr[train$day == i] = day.ctr[day.ctr$day == i, 'ratio']
 }
 
+banner.ctr = train %>% group_by(banner_pos) %>% summarise(ratio = (sum(click == 1) + (.17 * 250)) / (length(click) + 250))
+banner.ctr = data.frame(banner.ctr)
+for (i in unique(train$banner_pos)) {
+    train$banner.ctr[train$banner_pos == i] = banner.ctr[banner.ctr$banner_pos == i, 'ratio']
+}
+
+site.ctr = train %>% group_by(site_category) %>% summarise(ratio = (sum(click == 1) + (.17 * 250)) / (length(click) + 250))
+site.ctr = data.frame(site.ctr)
+for (i in unique(train$site_category)) {
+    train$site.ctr[train$site_category == i] = site.ctr[site.ctr$site_category == i, 'ratio']
+}
+
+device.ctr = train %>% group_by(device_type) %>% summarise(ratio = (sum(click == 1) + (.17 * 250)) / (length(click) + 250))
+device.ctr = data.frame(device.ctr)
+for (i in unique(train$device_type)) {
+    train$device.ctr[train$device_type == i] = device.ctr[device.ctr$device_type == i, 'ratio']
+}
+
+
 train$C1 = as.character(train$C1)
 train$banner_pos = as.character(train$banner_pos)
+train$site_id = as.character(train$site_id)
+train$site_domain = as.character(train$site_domain)
+train$site_category = as.character(train$site_category)
+train$app_id = as.character(train$app_id)
+train$app_domain = as.character(train$app_domain)
+train$app_category = as.character(train$app_category)
+train$device_model = as.character(train$device_model)
 train$device_type = as.character(train$device_type)
+train$device_conn_type = as.character(train$device_conn_type)
 train$C14 = as.character(train$C14)
 train$C15 = as.character(train$C15)
 train$C16 = as.character(train$C16)
