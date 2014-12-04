@@ -197,7 +197,11 @@ write.table(train, file = 'vw_train.avgctr.txt', sep = " ", quote = F, row.names
 #Run Vowpal Wabbit!
 #type the two following commands in terminal
 
-#vw -d vw_trainnew.txt -c --passes 100 -f ctr.model.new.vw --loss_function logistic --learning_rate 0.1
+#find optimal regularization values
+#vw-hypersearch 1e-10 1 vw --l1 % vw_trainnew.txt
+#vw-hypersearch 1e-10 1 vw --l2 % vw_trainnew.txt
+
+#vw -d vw_trainnew.txt -c -k --passes 20 -b 29 -f ctr.model.new.vw --loss_function logistic --learning_rate 0.1
 
 #vw vw_test.txt -t -i ctr.model.vw -p ctr.preds.txt
 
