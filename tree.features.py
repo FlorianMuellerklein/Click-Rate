@@ -46,17 +46,13 @@ def main():
 	train = None
 	
 	# encode rf features for logit
+	print('fitting encoder ... ')
 	encoder.fit(train_rf)
 	print('transforming ...')
-	embed_one = encoder.transform(train_rf[0:1000000,])
-	embed_two = encoder.transform(train_rf[1000001:2000000,])
-	embed_three = encoder.transform(train_rf[2000001:3000000,])
-	embed_four = encoder.transform(train_rf[3000001:4000000,])
-	embedded = vstack((embed_one, embed_two, embed_three, embed_four))
-	embed_one = None
-	embed_two = None
-	embed_three = None
-	embed_four = None
+	embedded = []
+	for row in train_rf:
+		embedded = vstack((embedded, encoder.transform(row)))
+	
 	train_rf = None
 	
 	# train model
@@ -72,15 +68,10 @@ def main():
 	
 	# encode test
 	print('transforming ...')
-	embed_one = encoder.transform(test_rf[0:1000000,])
-	embed_two = encoder.transform(test_rf[1000001:2000000,])
-	embed_three = encoder.transform(test_rf[2000001:3000000,])
-	embed_four = encoder.transform(test_rf[3000001:4577464,])
-	embedded_test = vstack((embed_one, embed_two, embed_three, embed_four))
-	embed_one = None
-	embed_two = None
-	embed_three = None
-	embed_four = None
+	embedded = []
+	for row in test_rf:
+		embedded = vstack((embedded, encoder.transform(row)))
+	
 	test_rf = None
 	
 	# make predictions
