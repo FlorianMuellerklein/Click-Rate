@@ -110,6 +110,9 @@ def main():
 	#fit_x, fit_y = load_fit_data(train_loc)
     model_skeleton = littleBadBoy(fit_x, reader, SEED, path, rf, train_loc)
     model_skeleton.load_fit_data()
+    
+    # test - print fit_x to screen
+    model_skeleton.getFit_x()
 	
 	# rf feature transformation
     #############################
