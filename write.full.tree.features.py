@@ -1,6 +1,4 @@
-import csv
 import pandas as pd
-import sklearn as sk
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
@@ -39,8 +37,8 @@ def load_train_data(path, rf):
 
         train_rf = rf.apply(chunk).astype(str)
         for row in range(0, chunk.shape[0]):
-			for column in range(0,30, 1):
-				train_rf[row,column] = ('C' + str(column) + str(train_rf[row,column]))
+		for column in range(0,30, 1):
+			train_rf[row,column] = ('C' + str(column) + str(train_rf[row,column]))
 
         click = vw_ready(click)
         train_rf = np.column_stack((click, orig, train_rf))
@@ -66,8 +64,8 @@ def load_test_data(path, rf):
 
         test_rf = rf.apply(chunk).astype(str)
         for row in range(0, chunk.shape[0]):
-			for column in range(0,30, 1):
-				test_rf[row,column] = ('C' + str(column) + str(test_rf[row,column]))
+		for column in range(0,30, 1):
+			test_rf[row,column] = ('C' + str(column) + str(test_rf[row,column]))
 		
         id = vw_ready(id)
         test_rf = np.column_stack((id, orig, test_rf))
