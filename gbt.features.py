@@ -5,6 +5,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 
 train_loc = 'train.day.hour.csv'
 test_loc = 'test.day.hour.csv'
+TREES = 2
+NODES = 5
 
 # get leaf indices from GBT ensemble
 def get_leaf_indices(ensemble, x):
@@ -40,14 +42,20 @@ def load_fit_data(path):
     
     return fit_x, fit_y
     
-# load, fit, transform and write training data to VW format
-def load_train_data(path, gbt):
+# load, fit, transform and write data to VW format
+def load_data(path, gbt, train):
     reader = pd.read_csv(path, dtype = str, chunksize = 10000)
     for chunk in reader:
-        click = chunk['click'].astype(int)
-        chunk = chunk.drop('click', 1)
-        chunk = chunk.drop('id', 1)
-        
+        if train == True:
+            y = chunk['click'].astype(int)
+            chunk = chunk.drop('click', 1)
+            chunk = chunk.drop('id', 1)
+            y = vw_ready(y)
+        else:
+            y = chunk['id']
+            chunk = chunk.drop('id', 1)
+            y = (y.astype(str) + ' |C').as_matrix()
+            
         # create array of original data
         orig = []
         for colname in list(chunk.columns.values):
@@ -58,54 +66,27 @@ def load_train_data(path, gbt):
         orig = np.column_stack(orig)
         
         # create array of tree features
-        train_tree = get_leaf_indices(gbt, chunk).astype(str)
+        x_tree = get_leaf_indices(gbt, chunk).astype(str)
         for row in range(0, chunk.shape[0]):
-            for column in range(0, 30, 1):
-                train_tree[row, column] = ('T' + str(column) + str(train_tree[row, column]))
+            for column in range(0, TREES, 1):
+                x_tree[row, column] = ('T' + str(column) + str(x_tree[row, column]))
 
         # get clicks into VW format and create output array  to write to file
-        click = vw_ready(click)
-        out = np.column_stack((click, orig, train_tree))
+        out = np.column_stack((y, orig, x_tree))
 
         # write file
-        file_handle = file('train.tree.txt', 'a')
-        np.savetxt(file_handle, out, delimiter = ' ', fmt = '%s')
-        file_handle.close()
-        
-# load, fit, transform and write testing data to VW format
-def load_test_data(path, gbt):
-    reader = pd.read_csv(path, dtype = str, chunksize = 10000)
-    for chunk in reader:
-        id = chunk['id']
-        chunk = chunk.drop('id', 1)
-        
-        # create array of original data
-        orig = []
-        for colname in list(chunk.columns.values):
-            orig.append(colname + chunk[colname])
-            chunk[colname] = pd.Categorical.from_array(chunk[colname]).codes
-
-        chunk = chunk.values
-        orig = np.column_stack(orig)
-
-        # create array of tree features
-        test_tree = get_leaf_indices(gbt, chunk).astype(str)
-        for row in range(0, chunk.shape[0]):
-            for column in range(0, 30, 1):
-                test_tree[row, column] = ('T' + str(column) + str(test_tree[row, column]))
-
-        # get id into VW formate and crate output array to write to file
-        id = (id.astype(str) + ' |C').as_matrix()
-        out = np.column_stack((id, orig, test_tree))
-        
-        # write file
-        file_handle = file('test.tree.txt', 'a')
-        np.savetxt(file_handle, out, delimiter = ' ', fmt = '%s')
-        file_handle.close()
+        if train == True:
+            file_handle = file('train.tree.txt', 'a')
+            np.savetxt(file_handle, out, delimiter = ' ', fmt = '%s')
+            file_handle.close()
+        else:
+            file_handle = file('test.tree.txt', 'a')
+            np.savetxt(file_handle, out, delimiter = ' ', fmt = '%s')
+            file_handle.close()
 
 # do the process
 def main():
-    gbt = GradientBoostingClassifier(n_estimators = 30, max_depth = 7, verbose = 1)
+    gbt = GradientBoostingClassifier(n_estimators = TREES, max_depth = NODES, verbose = 1)
     
     print('loading fit data ... ')
     fit_x, fit_y = load_fit_data(train_loc)
@@ -116,10 +97,12 @@ def main():
     fit_y = None
     
     print('writing training file for VW with gbt features ... ')
-    load_train_data(train_loc, gbt)
+    train = True
+    load_data(train_loc, gbt, train)
     
     print('writing test file for VW with gbt features ... ')
-    load_test_data(test_loc, gbt)
+    train = False
+    load_data(test_loc, gbt, train)
     
 if __name__ == '__main__':
     main()
