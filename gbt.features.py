@@ -30,7 +30,7 @@ def vw_ready(data):
     return data
 
 # load and prepare model fit data
-def load_fit_data(path):
+def load_fit_data(path, gbt):
     fit_x = pd.read_csv(path, dtype = str)
     fit_y = fit_x['click'].astype(int).values
     fit_x = fit_x.drop('click', 1)
@@ -40,7 +40,9 @@ def load_fit_data(path):
     
     fit_x = fit_x.values
     
-    return fit_x, fit_y
+    gbt.fit(fit_x, fit_y)
+    
+    return gbt
     
 # load, fit, transform and write data to VW format
 def load_data(path, gbt, train):
@@ -88,21 +90,14 @@ def load_data(path, gbt, train):
 def main():
     gbt = GradientBoostingClassifier(n_estimators = TREES, max_depth = NODES, verbose = 1)
     
-    print('loading fit data ... ')
-    fit_x, fit_y = load_fit_data(train_loc)
-    
-    print('fitting gbt ... ')
-    gbt.fit(fit_x, fit_y)
-    fit_x = None
-    fit_y = None
+    print('loading data and fitting gbt ... ')
+    gbt = load_fit_data(train_loc, gbt)
     
     print('writing training file for VW with gbt features ... ')
-    train = True
-    load_data(train_loc, gbt, train)
+    load_data(train_loc, gbt, train = True)
     
     print('writing test file for VW with gbt features ... ')
-    train = False
-    load_data(test_loc, gbt, train)
+    load_data(test_loc, gbt, train = False)
     
 if __name__ == '__main__':
     main()
