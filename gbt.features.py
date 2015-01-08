@@ -5,8 +5,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 
 train_loc = 'train.day.hour.csv'
 test_loc = 'test.day.hour.csv'
-TREES = 2
-NODES = 5
+TREES = 30
+NODES = 7
 
 # get leaf indices from GBT ensemble
 def get_leaf_indices(ensemble, x):
